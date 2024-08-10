@@ -55,3 +55,71 @@ def save_user_profile(sender, instance, **kwargs):
     
 post_save.connect(create_user_profile, sender=CustomUser)
 post_save.connect(save_user_profile, sender=CustomUser)
+
+class Category(models.Model):
+    title = models.CharField(max_length=100)
+    image = models.FileField(upload_to="image", null=True, blank=True)
+    slug = models.SlugField(unique=True, null=True, blank=True)
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta: 
+        verbose_name_plural = "Category"
+    
+    def save(self, *args, **kwargs):
+        if self.slug == "" or self.slug == None: 
+            self.slug == slugify(self.title)
+        super(Category, self).save(*args, **kwargs)
+        
+    def post_count(self):
+        return Post.objects.filter(category=self).count()
+        
+class Post(models.Model):
+    
+    STATUS = (
+        ("Active", "Active"),
+        ("Draft", "Draft"),
+        ("Disabled", "Disabled"),
+    )
+    
+    title = models.CharField(max_length=100)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True) 
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True) 
+    image = models.FileField(upload_to="image", null=True, blank=True)
+    slug = models.SlugField(unique=True, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    status = models.CharField(choices=STATUS, max_length=100, default="Active")
+    views = models.IntegerField(default=0)
+    likes = models.ManyToManyField(CustomUser, blank=True, related_name="likes_user")
+    date = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta: 
+        ordering = ["-date"]
+        verbose_name_plural = "Post"
+    
+    def save(self, *args, **kwargs):
+        if self.slug == "" or self.slug == None: 
+            # Ensure unique slug on similar post title submissions            
+            self.slug == slugify(self.title) + "-" + shortuuid.uuid()[:2]     
+        super(Category, self).save(*args, **kwargs)
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    email = models.CharField(max_length=100)
+    comment = models.TextField(null=True, blank=True)
+    reply = models.TextField(null=True, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.post.title
+    
+    class Meta: 
+        ordering = ["-date"]
+        verbose_name_plural = "Comment"
+    
