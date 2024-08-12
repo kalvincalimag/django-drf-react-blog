@@ -123,3 +123,38 @@ class Comment(models.Model):
         ordering = ["-date"]
         verbose_name_plural = "Comment"
     
+class Bookmark(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.post.title
+    
+    class Meta: 
+        ordering = ["-date"]
+        verbose_name_plural = "Bookmark"
+
+class Notification(models.Model):
+    NOTI_TYPE = (
+        ("Like", "Like"),
+        ("Comment", "Comment"),
+        ("Bookmark", "Bookmark"),
+    )
+    
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    notification_type = models.CharField(choices=NOTI_TYPE, max_length=100)
+    seen = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.post:
+            # Ensure representation on deletion of a post        
+            return f"{self.post.title} - {self.notification_type}"
+        else:
+            return "Notification"
+    
+    class Meta: 
+        ordering = ["-date"]
+        verbose_name_plural = "Notification"
