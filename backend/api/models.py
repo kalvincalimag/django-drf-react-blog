@@ -106,7 +106,7 @@ class Post(models.Model):
         if self.slug == "" or self.slug == None: 
             # Ensure unique slug on similar post title submissions            
             self.slug == slugify(self.title) + "-" + shortuuid.uuid()[:2]     
-        super(Category, self).save(*args, **kwargs)
+        super(Post, self).save(*args, **kwargs)
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
