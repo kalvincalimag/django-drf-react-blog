@@ -50,3 +50,22 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         profile = api_models.Profile.objects.get(user=user)
         return profile
 
+class CategoryListAPIView(generics.ListAPIView):
+    serializer_class = api_serializers.CategorySerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get_queryset(self):
+        categories = api_models.Category.objects.all()
+        return categories
+        
+class PostCategoryListAPIView(generics.ListAPIView):
+    serializer_class = api_serializers.PostSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    
+    def get_queryset(self):
+        category_slug = self.kwargs['category_slug']
+        category = api_models.Category.objects.get(slug=category_slug)
+        posts = api_models.Post.objects.filter(category=category, status="Active")
+        return posts
